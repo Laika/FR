@@ -63,6 +63,10 @@ impl Factors {
             },
         }
     }
+    pub fn n(&self) -> BigInt {
+        self.factors.iter().map(|(p, e)| p.pow(*e)).product()
+    }
+
     pub fn add(&mut self, p: BigInt) {
         if self.factors.contains_key(&p) {
             if let Some(e) = self.factors.get_mut(&p) {
@@ -74,6 +78,18 @@ impl Factors {
     }
     pub fn get_factors(&self) -> HashMap<BigInt, u32> {
         self.factors.clone()
+    }
+    pub fn get_factors_vector(&self) -> Vec<Factor> {
+        let mut v = Vec::<Factor>::new();
+        for (p, e) in self.factors.iter() {
+            v.push(Factor {
+                p: p.clone(),
+                e: e.clone(),
+            })
+        }
+        v.sort();
+
+        v
     }
 }
 impl Display for Factors {
