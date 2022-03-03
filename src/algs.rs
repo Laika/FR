@@ -1,29 +1,61 @@
-use num::bigint::{BigInt, ToBigInt};
-use num::traits::Zero;
+use num::bigint::BigInt;
+use num::Integer;
+use num::ToPrimitive;
+use num_bigint::{RandBigInt, ToBigInt};
 
-pub fn mod_pow(b: u128, e: u128, m: u128) -> u128 {
-    let mut s = 1;
+pub fn mod_pow(b: BigInt, e: u64, m: BigInt) -> BigInt {
+    let mut s: BigInt = BigInt::from(1u64);
     let mut t = b;
     let mut exp = e;
+    let mo = m.clone();
 
     while exp > 0 {
         if exp & 1 == 1 {
-            s = s * t % m;
+            s = s * t.clone() % mo.clone();
         }
-        t = t * t % m;
+        t = t.clone() * t.clone() % mo.clone();
         exp >>= 1;
-        println!("{s}, {t}, {exp}");
     }
     s
 }
 
-pub fn is_quadratic(a: u128, p: u128) -> bool {
-    mod_pow(a, (p - 1) / 2, p) == 1
+pub fn is_quadratic(a: BigInt, p: BigInt) -> bool {
+    let e: u64 = ((p.clone() - 1u64) / 2u64).to_u64().unwrap();
+    mod_pow(a, e, p) == BigInt::from(1u64)
 }
 
 pub fn is_square(n: &BigInt) -> bool {
     let n = n.clone();
     let x = n.sqrt();
 
-    x.clone() * x == n
+    x.clone() * x.clone() == n
+}
+
+pub fn miller_rabin(n: BigInt) -> bool {
+    if n <= BigInt::from(1u64) {
+        return false;
+    }
+    let mut m: BigInt = n.clone() - 1u64;
+    let mut k: u64 = 0;
+    while m.is_even() {
+        k += 1u64;
+        m >>= 1u64;
+    }
+
+    let mut rng = rand::thread_rng();
+    let low = 2u64.to_bigint().unwrap();
+    let high = n.clone();
+    let a = rng.gen_bigint_range(&low, &high);
+
+    let mut b = mod_pow(a, m.to_u64().unwrap(), n.clone());
+    for _ in 0..k {
+        if b.clone() % n.clone() == n.clone() - 1u64 {
+            return true;
+        }
+        b = mod_pow(b.clone(), 2, n.clone());
+    }
+    false
+}
+pub fn is_prime(n: BigInt) -> bool {
+    miller_rabin(n)
 }
