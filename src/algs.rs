@@ -19,9 +19,14 @@ pub fn mod_pow(b: BigInt, e: u64, m: BigInt) -> BigInt {
     s
 }
 
+pub fn inv(a: BigInt, p: BigInt) -> BigInt {
+    let res = a.extended_gcd(&p);
+    res.x % p
+}
+
 pub fn is_quadratic(a: BigInt, p: BigInt) -> bool {
-    let e: u64 = ((p.clone() - 1u64) / 2u64).to_u64().unwrap();
-    mod_pow(a, e, p) == BigInt::from(1u64)
+    let e: BigInt = (p.clone() - 1u64) >> 1u64;
+    a.modpow(&e, &p) == BigInt::from(1u64)
 }
 
 pub fn is_square(n: &BigInt) -> bool {

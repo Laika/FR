@@ -7,8 +7,8 @@ use std::ops::{Add, Div, Fn, FnMut, FnOnce, Mul, Neg, Sub};
 
 #[derive(PartialEq, Eq, Clone, Default, Hash, Debug)]
 pub struct GF {
-    p: BigInt,
-    value: BigInt,
+    pub p: BigInt,
+    pub value: BigInt,
 }
 impl GF {
     #[allow(non_snake_case)]
@@ -41,6 +41,16 @@ impl GF {
                 value: ((-v + p - &BigInt::one()) / p * p + v) % p,
             },
         }
+    }
+    pub fn p(&self) -> BigInt {
+        self.p.clone()
+    }
+
+    pub fn zero(&self) -> Self {
+        self.new(&BigInt::zero())
+    }
+    pub fn one(&self) -> Self {
+        self.new(&BigInt::one())
     }
 
     pub fn inv(&self) -> Self {

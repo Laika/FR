@@ -3,14 +3,16 @@ use num::BigInt;
 
 mod algs;
 mod consts;
+mod elliptic_curve;
 mod fermat;
+mod gf;
 mod traits;
 mod trial;
 
 fn main() {
-    let mut input = String::new();
-    std::io::stdin().read_line(&mut input).unwrap();
-    let n = BigInt::parse_bytes("217".as_bytes(), 10).unwrap();
+    let mut n_str: String = String::new();
+    std::io::stdin().read_line(&mut n_str).unwrap();
+    let n = BigInt::parse_bytes(n_str.trim().as_bytes(), 10).unwrap();
 
     let fermat = fermat::Fermat::new(n.clone());
     let res_fermat = fermat.factorize().unwrap();

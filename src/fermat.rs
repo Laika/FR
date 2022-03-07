@@ -19,7 +19,10 @@ impl Factorizer for Fermat {
 }
 
 fn factorize(n: &BigInt) -> Option<Factors> {
-    let mut x: BigInt = n.sqrt() + 1u32;
+    let mut x: BigInt = n.sqrt();
+    if x.clone() * x.clone() < n.clone() {
+        x += 1u32;
+    }
     let mut y2 = x.clone() * x.clone() - n.clone();
     while !is_square(&y2) {
         x += 1u32;
@@ -45,9 +48,8 @@ mod tests {
         let n = BigInt::parse_bytes("895649414291294604941588381871244924626104121562042227318384494381723497514540860474803494041479529".as_bytes(), 10).unwrap();
         let ff = Fermat::new(n);
         let factors = ff.factorize().unwrap().get_factors();
-        let primes = Vec::from_iter(factors.keys());
         assert_eq!(
-            *primes.clone()[0],
+            factors.clone().keys().max().unwrap().clone(),
             BigInt::parse_bytes(
                 "29927402397991286489627904551843385490310576382227".as_bytes(),
                 10
@@ -55,7 +57,7 @@ mod tests {
             .unwrap()
         );
         assert_eq!(
-            *primes[1],
+            factors.clone().keys().min().unwrap().clone(),
             BigInt::parse_bytes(
                 "29927402397991286489627837734179186385188296382227".as_bytes(),
                 10
