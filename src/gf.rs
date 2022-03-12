@@ -3,9 +3,10 @@ use num::Integer;
 use num::ToPrimitive;
 use num_bigint::{RandBigInt, ToBigInt};
 use num_traits::{One, Zero};
+use std::fmt::{Debug, Display, Formatter, Result};
 use std::ops::{Add, Div, Fn, FnMut, FnOnce, Mul, Neg, Sub};
 
-#[derive(PartialEq, Eq, Clone, Default, Hash, Debug)]
+#[derive(Clone, Default, Hash)]
 pub struct GF {
     pub p: BigInt,
     pub value: BigInt,
@@ -70,6 +71,24 @@ impl GF {
                 value: self.value.modpow(&e, &self.p),
             },
         }
+    }
+}
+
+impl Display for GF {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", self.value)
+    }
+}
+
+impl Debug for GF {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{:?}", self.value)
+    }
+}
+
+impl PartialEq for GF {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.value == rhs.value && self.p == rhs.p
     }
 }
 
