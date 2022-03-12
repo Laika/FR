@@ -54,22 +54,26 @@ impl GF {
         self.new(&BigInt::one())
     }
 
-    pub fn inv(&self) -> Self {
+    pub fn inv(&self) -> Option<Self> {
         let res = self.value.extended_gcd(&self.p);
-        self.new(&res.x)
+        if res.gcd == BigInt::one() {
+            Some(self.new(&res.x))
+        } else {
+            None
+        }
     }
 
-    pub fn pow(&self, e: &BigInt) -> Self {
+    pub fn pow(&self, e: &BigInt) -> Option<Self> {
         match e.sign() {
             Sign::Minus => Self {
                 p: self.p.clone(),
                 value: self.value.modpow(&-e, &self.p),
             }
             .inv(),
-            _ => Self {
+            _ => Some(Self {
                 p: self.p.clone(),
                 value: self.value.modpow(&e, &self.p),
-            },
+            }),
         }
     }
 }
@@ -135,9 +139,10 @@ impl Mul for GF {
 }
 
 impl Div for GF {
-    type Output = Self;
+    type Output = Option<Self>;
     fn div(self, rhs: Self) -> Self::Output {
-        self * rhs.inv()
+        let rinv = rhs.inv()?;
+        Some(self * rinv)
     }
 }
 
@@ -221,7 +226,7 @@ mod tests {
             16,
         )
         .unwrap();
-        assert_eq!(x / y, f.new(&z));
+        assert_eq!((x / y).unwrap(), f.new(&z));
 
         let x: GF = f.new(&a);
         let y: &BigInt = &b;
@@ -230,7 +235,7 @@ mod tests {
             16,
         )
         .unwrap();
-        assert_eq!(x.pow(&y), f.new(&z));
+        assert_eq!(x.pow(&y).unwrap(), f.new(&z));
 
         let x: GF = f.new(&a);
         let y: &BigInt = &b;
@@ -239,7 +244,7 @@ mod tests {
             16,
         )
         .unwrap();
-        assert_eq!(x.pow(&-y), f.new(&z));
+        assert_eq!(x.pow(&-y).unwrap(), f.new(&z));
 
         let x: GF = f.new(&a);
         let y: GF = f.new(&b);

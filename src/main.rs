@@ -8,6 +8,7 @@ mod fermat;
 mod gf;
 mod traits;
 mod trial;
+mod ecm;
 
 fn main() {
     let mut n_str: String = String::new();

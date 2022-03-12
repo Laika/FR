@@ -23,8 +23,8 @@ impl EllipticCurve {
 
     pub fn new_point(&self, x: &BigInt, y: &BigInt) -> Point {
         let (x, y) = (self.f.new(x), self.f.new(y));
-        let lhs = x.pow(&BigInt::from(3u32)) + x.clone() * self.a.clone() + self.b.clone();
-        let rhs = y.pow(&BigInt::from(2u32));
+        let lhs = x.pow(&BigInt::from(3u32)).unwrap() + x.clone() * self.a.clone() + self.b.clone();
+        let rhs = y.pow(&BigInt::from(2u32)).unwrap();
         assert_eq!(lhs, rhs);
         Point {
             x,
@@ -67,15 +67,26 @@ pub struct Point {
     n: GF,
 }
 impl Point {
-    pub fn xy(&self) -> (GF, GF) {
+    pub fn xy(&self) -> (BigInt, BigInt) {
         if self.z.clone() == self.curve.f.zero() {
-            return (self.curve.f.zero(), self.curve.f.zero());
+            return (BigInt::zero(), BigInt::zero()); // TODO: Should be changed to an appropriate value?
         } else {
             (
-                self.x.clone() / self.z.clone().pow(&BigInt::from(2u32)),
-                self.y.clone() / self.z.clone().pow(&BigInt::from(3u32)),
+                (self.x.clone() / self.z.clone().pow(&BigInt::from(2u32)).unwrap())
+                    .unwrap()
+                    .value,
+                (self.y.clone() / self.z.clone().pow(&BigInt::from(3u32)).unwrap())
+                    .unwrap()
+                    .value,
             )
         }
+    }
+
+    pub fn x(&self) -> BigInt {
+        self.xy().0
+    }
+    pub fn y(&self) -> BigInt {
+        self.xy().1
     }
 }
 impl Display for Point {
@@ -97,8 +108,8 @@ impl PartialEq for Point {
 }
 
 impl Add for Point {
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self {
+    type Output = Option<Self>;
+    fn add(self, rhs: Self) -> Self::Output {
         assert_eq!(self.curve.a, rhs.curve.a);
         assert_eq!(self.curve.b, rhs.curve.b);
         assert_eq!(self.curve.f.p, rhs.curve.f.p);
@@ -106,106 +117,102 @@ impl Add for Point {
         let p = self.curve.f.p.clone();
         let f = GF::GF(&p);
         if self == self.curve.o() {
-            return rhs;
+            return Some(rhs);
         }
         if rhs == self.curve.o() {
-            return self;
+            return Some(self);
         }
         let (x1, x2) = (self.x, rhs.x);
         let (y1, y2) = (self.y, rhs.y);
         let (z1, z2) = (self.z, rhs.z);
 
         let (u1, u2) = (
-            x1 * z2.pow(&BigInt::from(2u32)),
-            x2 * z1.pow(&BigInt::from(2u32)),
+            x1 * z2.pow(&BigInt::from(2u32))?,
+            x2 * z1.pow(&BigInt::from(2u32))?,
         );
         let (s1, s2) = (
-            y1.clone() * z2.pow(&BigInt::from(3u32)),
-            y2.clone() * z1.pow(&BigInt::from(3u32)),
+            y1.clone() * z2.pow(&BigInt::from(3u32))?,
+            y2.clone() * z1.pow(&BigInt::from(3u32))?,
         );
         let h = u2.clone() - u1.clone();
         let r = (s2.clone() - s1.clone()) * f.new(&BigInt::from(2u32));
-        let i = h.pow(&BigInt::from(2u32)) * f.new(&BigInt::from(4u32));
+        let i = h.pow(&BigInt::from(2u32))? * f.new(&BigInt::from(4u32));
         let (j1, j2) = (i.clone() * h.clone(), i.clone() * u1.clone());
-        let x3 = r.pow(&BigInt::from(2u32)) - j1.clone() - j2.clone() * f.new(&BigInt::from(2u32));
+        let x3 = r.pow(&BigInt::from(2u32))? - j1.clone() - j2.clone() * f.new(&BigInt::from(2u32));
         let y3 = (j2.clone() - x3.clone()) * r.clone()
             - s1.clone() * j1.clone() * f.new(&BigInt::from(2u32));
         let z3 = h.clone() * z1.clone() * z2 * f.new(&BigInt::from(2u32));
 
         let finity: bool = z3.clone() != self.curve.f.zero();
         if !finity {
-            self.curve.o()
+            Some(self.curve.o())
         } else {
-            let x3 = x3.clone() / z3.clone().pow(&BigInt::from(2u32));
-            let y3 = y3.clone() / z3.clone().pow(&BigInt::from(3u32));
+            let x3 = (x3.clone() / z3.clone().pow(&BigInt::from(2u32))?)?;
+            let y3 = (y3.clone() / z3.clone().pow(&BigInt::from(3u32))?)?;
             let z3 = self.curve.f.new(&BigInt::from(finity as i32));
-            Self {
+            Some(Self {
                 x: x3,
                 y: y3,
                 z: z3,
                 curve: self.curve,
                 n: self.n,
-            }
+            })
         }
     }
 }
 
 impl Mul<Point> for BigInt {
-    type Output = Point;
+    type Output = Option<Point>;
     fn mul(self, rhs: Point) -> Self::Output {
         scalar_mul(self, rhs)
     }
 }
 
-fn scalar_mul(k: BigInt, P: Point) -> Point {
+fn scalar_mul(k: BigInt, P: Point) -> Option<Point> {
     let mut p: Point = P.curve.o();
     let mut p0: Point = P.clone();
     let mut k: BigInt = k.clone();
 
     while k > BigInt::zero() {
-        println!("P  {p}");
-        println!("p0 {p0}");
-        println!("k  {k}");
         if k.clone() & BigInt::one() == BigInt::one() {
-            println!("--===========");
-            p = p + p0.clone();
+            p = (p + p0.clone())?;
         }
-        p0 = double(p0.clone());
+        p0 = double(p0.clone())?;
         k >>= 1u32;
     }
-    p
+    Some(p)
 }
 
-fn double(pp: Point) -> Point {
+fn double(pp: Point) -> Option<Point> {
     let (a, p) = (pp.curve.a.clone(), pp.curve.f.p.clone());
     let f = GF::GF(&p);
     let (x1, y1, z1) = (pp.x, pp.y, pp.z);
-    let s = ((x1.clone() + y1.pow(&BigInt::from(2u32))).pow(&BigInt::from(2u32))
-        - x1.pow(&BigInt::from(2u32))
-        - y1.pow(&BigInt::from(4u32)))
+    let s = ((x1.clone() + y1.pow(&BigInt::from(2u32))?).pow(&BigInt::from(2u32))?
+        - x1.pow(&BigInt::from(2u32))?
+        - y1.pow(&BigInt::from(4u32))?)
         * f.new(&BigInt::from(2u32));
     println!("{s}");
-    let m = (x1.pow(&BigInt::from(2u32))) * f.new(&BigInt::from(3u32))
-        + (z1.pow(&BigInt::from(4u32))) * a;
-    let x3 = m.pow(&BigInt::from(2u32)) - s.clone() * f.new(&BigInt::from(2u32));
+    let m = (x1.pow(&BigInt::from(2u32))?) * f.new(&BigInt::from(3u32))
+        + (z1.pow(&BigInt::from(4u32))?) * a;
+    let x3 = m.pow(&BigInt::from(2u32))? - s.clone() * f.new(&BigInt::from(2u32));
     let y3 =
-        (s.clone() - x3.clone()) * m - (y1.pow(&BigInt::from(4u32))) * f.new(&BigInt::from(8u32));
+        (s.clone() - x3.clone()) * m - (y1.pow(&BigInt::from(4u32))?) * f.new(&BigInt::from(8u32));
     let z3 = y1 * z1 * f.new(&BigInt::from(2u32));
 
     let finity: bool = z3.clone() != pp.curve.f.zero();
     if !finity {
-        pp.curve.o()
+        Some(pp.curve.o())
     } else {
-        let x3 = x3.clone() / z3.clone().pow(&BigInt::from(2u32));
-        let y3 = y3.clone() / z3.clone().pow(&BigInt::from(3u32));
+        let x3 = (x3.clone() / z3.clone().pow(&BigInt::from(2u32))?)?;
+        let y3 = (y3.clone() / z3.clone().pow(&BigInt::from(3u32))?)?;
         let z3 = pp.curve.f.new(&BigInt::from(finity as i32));
-        Point {
+        Some(Point {
             x: x3,
             y: y3,
             z: z3,
             curve: pp.curve,
             n: pp.n,
-        }
+        })
     }
 }
 
@@ -272,12 +279,12 @@ mod tests {
         let P = e.new_point(&x1, &y1);
         let Q = e.new_point(&x2, &y2);
         let R = e.new_point(&x3, &y3);
-        assert_eq!(P.clone() + Q.clone(), R);
+        assert_eq!((P.clone() + Q.clone()).unwrap(), R);
 
-        assert_eq!(Q.clone() + Q.curve.o(), Q.clone());
-        assert_eq!(Q.curve.o() + Q.clone(), Q.clone());
+        assert_eq!((Q.clone() + Q.curve.o()).unwrap(), Q.clone());
+        assert_eq!((Q.curve.o() + Q.clone()).unwrap(), Q.clone());
 
-        assert_eq!(BigInt::from(2u32) * Q.curve.o(), Q.curve.o());
+        assert_eq!((BigInt::from(2u32) * Q.curve.o()).unwrap(), Q.curve.o());
 
         let x3 = BigInt::parse_bytes(
             "ff339cace0a8015a7f693252f3f810e6f04a427d1b0cef16020325be952166c1".as_bytes(),
@@ -290,9 +297,6 @@ mod tests {
         )
         .unwrap();
         let R = e.new_point(&x3, &y3);
-        let Q = k.clone() * P.clone();
-        println!("target {R}");
-        println!("k*P    {Q}");
-        assert_eq!(k * P.clone(), R);
+        assert_eq!((k * P.clone()).unwrap(), R);
     }
 }
