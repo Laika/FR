@@ -1,14 +1,10 @@
-use crate::algs::{is_prime, is_square};
 use crate::consts::PRIMES as primes;
-use crate::elliptic_curve::EllipticCurve;
+use crate::elliptic_curve::{scalar_mul_for_factorization, EllipticCurve};
 use crate::gf::GF;
-use crate::traits::{Factor, Factorizer, Factors};
+use crate::traits::{Factorizer, Factors};
 use num::bigint::BigInt;
-use num::Integer;
-use num::ToPrimitive;
 use num_bigint::RandBigInt;
-use num_traits::{One, Zero};
-use std::collections::HashMap;
+use num_traits::Zero;
 
 pub struct ECM {
     n: BigInt,
@@ -30,7 +26,7 @@ fn factorize(n: &BigInt) -> Option<Factors> {
     let mut rng = rand::thread_rng();
     let low = BigInt::from(2u64);
     let high = n.clone();
-    let l = 20000_u64;
+    let l = 242u64;
 
     loop {
         let f = GF::GF(&n);
@@ -42,28 +38,22 @@ fn factorize(n: &BigInt) -> Option<Factors> {
             - a.clone() * x0.clone();
         let e = EllipticCurve::new(&f, &a.value, &b.value);
         let g = e.new_point(&x0.value, &y0.value);
-        println!("G: {g}");
 
         for p in primes {
-            let mut mp: u64 = p.clone();
+            let mut m: u64 = p.clone();
             //let mut pg; // Previous g
             let mut cg = (BigInt::from(2u32) * g.clone())?; // Current g
 
-            while mp.clone() * p.clone() <= l {
-                mp *= p.clone();
+            while m.clone() * p.clone() <= l {
+                m *= p.clone();
             }
 
-            let xg = BigInt::from(mp) * g.clone();
-            let res = match xg.clone() {
-                Some(_) => None,
-                None => Some("Found"),
-            };
-            println!("{res:?}");
-            println!("xg: {xg:?}");
-            //for k in 1..=mp {
+            let xg = scalar_mul_for_factorization(BigInt::from(m), g.clone());
+            println!("{p} | {xg:?}");
+            //for k in 1..=m {
             //    pg = cg.clone();
             //    cg = (cg.clone() + g.clone())?;
-            //    println!("{k}/{mp}");
+            //    println!("{k}/{m}");
             //    if cg == e.o() {
             //        let m = pg.x() - g.x();
             //        let q = n.gcd(&m);
@@ -81,15 +71,16 @@ fn factorize(n: &BigInt) -> Option<Factors> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::bi;
     use num::bigint::BigInt;
 
     #[test]
-    fn test_ECM() {
-        let n = BigInt::parse_bytes("121439531096594251777".as_bytes(), 10).unwrap();
-        // let n = BigInt::from(187_u32);
+    fn test_ecm() {
+        //let n = bi!("121439531096594251777", 10);
+        //let n = bi!("455839", 10);
+        let n = bi!("835791", 10);
         let ff = ECM::new(&n);
-        let f = ff.factorize().unwrap();
+        let f = ff.factorize();
         println!("f: {f:?}");
-        assert_eq!(f.n(), n);
     }
 }

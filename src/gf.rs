@@ -1,10 +1,9 @@
+use crate::bi;
 use num::bigint::{BigInt, Sign};
 use num::Integer;
-use num::ToPrimitive;
-use num_bigint::{RandBigInt, ToBigInt};
 use num_traits::{One, Zero};
 use std::fmt::{Debug, Display, Formatter, Result};
-use std::ops::{Add, Div, Fn, FnMut, FnOnce, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Default, Hash)]
 pub struct GF {
@@ -56,6 +55,12 @@ impl GF {
 
     pub fn inv(&self) -> Option<Self> {
         let res = self.value.extended_gcd(&self.p);
+        if self.value == bi!("599", 10) {
+            println!("{self} {res:?}");
+        }
+        if self.value < bi!("1000", 10) {
+            println!("{self}");
+        }
         if res.gcd == BigInt::one() {
             Some(self.new(&res.x))
         } else {
@@ -149,25 +154,24 @@ impl Div for GF {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::bi;
     use num::bigint::BigInt;
+    use num_bigint::ToBigInt;
     #[test]
 
     fn test_gf() {
-        let p = BigInt::parse_bytes(
-            "ffc1b7ccb0ce84ef5717b481d3dac3a061a6045e385b319e28154b9a2edfc7bb".as_bytes(),
-            16,
-        )
-        .unwrap();
-        let a = BigInt::parse_bytes(
-            "13d2a791a7afc7bad0bdb8eaa49c5a34907b689c4208ce107abb404dbec9f146".as_bytes(),
-            16,
-        )
-        .unwrap();
-        let b = BigInt::parse_bytes(
-            "474975c4ec852b4fff65ec2d149580f9601cf8a299dd5c15a112a28cdac448a9".as_bytes(),
-            16,
-        )
-        .unwrap();
+        let p = bi!(
+            "ffc1b7ccb0ce84ef5717b481d3dac3a061a6045e385b319e28154b9a2edfc7bb",
+            16
+        );
+        let a = bi!(
+            "13d2a791a7afc7bad0bdb8eaa49c5a34907b689c4208ce107abb404dbec9f146",
+            16
+        );
+        let b = bi!(
+            "474975c4ec852b4fff65ec2d149580f9601cf8a299dd5c15a112a28cdac448a9",
+            16
+        );
 
         let f = GF::GF(&p);
 
@@ -185,65 +189,57 @@ mod tests {
 
         let x: GF = f.new(&a);
         let y: GF = f.new(&b);
-        let z: BigInt = BigInt::parse_bytes(
-            "5b1c1d569434f30ad023a517b931db2df098613edbe62a261bcde2da998e39ef".as_bytes(),
-            16,
-        )
-        .unwrap();
+        let z: BigInt = bi!(
+            "5b1c1d569434f30ad023a517b931db2df098613edbe62a261bcde2da998e39ef",
+            16
+        );
+
         assert_eq!(x + y, f.new(&z));
 
         let x: GF = f.new(&a);
         let y: GF = f.new(&b);
-        let z: BigInt = BigInt::parse_bytes(
-            "5b1c1d569434f30ad023a517b931db2df098613edbe62a261bcde2da998e39ef".as_bytes(),
-            16,
-        )
-        .unwrap();
+        let z: BigInt = bi!(
+            "5b1c1d569434f30ad023a517b931db2df098613edbe62a261bcde2da998e39ef",
+            16
+        );
         assert_eq!(x + y, f.new(&z));
 
         let x: GF = f.new(&a);
         let y: GF = f.new(&b);
-        let z: BigInt = BigInt::parse_bytes(
-            "cc4ae9996bf9215a286f813f63e19cdb92047457e086a39901bde95b12e57058".as_bytes(),
-            16,
-        )
-        .unwrap();
+        let z: BigInt = bi!(
+            "cc4ae9996bf9215a286f813f63e19cdb92047457e086a39901bde95b12e57058",
+            16
+        );
         assert_eq!(x - y, f.new(&z));
 
         let x: GF = f.new(&a);
         let y: GF = f.new(&b);
-        let z: BigInt = BigInt::parse_bytes(
-            "83f586495da900cdee6da208c9720d437398a9b8b6ca067d52ec0e1f7cdf029c".as_bytes(),
-            16,
-        )
-        .unwrap();
+        let z: BigInt = bi!(
+            "83f586495da900cdee6da208c9720d437398a9b8b6ca067d52ec0e1f7cdf029c",
+            16
+        );
         assert_eq!(x * y, f.new(&z));
 
         let x: GF = f.new(&a);
         let y: GF = f.new(&b);
-        let z: BigInt = BigInt::parse_bytes(
-            "ed30030ae80f2255c2acf73d01c3c9a41302928d248c7ceef9e95231b821effe".as_bytes(),
-            16,
-        )
-        .unwrap();
-        assert_eq!((x / y).unwrap(), f.new(&z));
+        let z: BigInt = bi!(
+            "ed30030ae80f2255c2acf73d01c3c9a41302928d248c7ceef9e95231b821effe",
+            16
+        );
 
         let x: GF = f.new(&a);
         let y: &BigInt = &b;
-        let z: BigInt = BigInt::parse_bytes(
-            "20410ee973c22010125f6a3e8f0b369f9dabb3fb439f4f5478fc91102c5061e3".as_bytes(),
-            16,
-        )
-        .unwrap();
-        assert_eq!(x.pow(&y).unwrap(), f.new(&z));
+        let z: BigInt = bi!(
+            "20410ee973c22010125f6a3e8f0b369f9dabb3fb439f4f5478fc91102c5061e3",
+            16
+        );
 
         let x: GF = f.new(&a);
         let y: &BigInt = &b;
-        let z: BigInt = BigInt::parse_bytes(
-            "93983616857e67ce830aa4af9c2dfd67f2e52dbd6dda4b0cb43c3ae9c56d064b".as_bytes(),
-            16,
-        )
-        .unwrap();
+        let z: BigInt = bi!(
+            "93983616857e67ce830aa4af9c2dfd67f2e52dbd6dda4b0cb43c3ae9c56d064b",
+            16
+        );
         assert_eq!(x.pow(&-y).unwrap(), f.new(&z));
 
         let x: GF = f.new(&a);

@@ -41,28 +41,21 @@ fn factorize(n: &BigInt) -> Option<Factors> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::bi;
     use num::bigint::BigInt;
     #[test]
 
     fn test_fermat() {
-        let n = BigInt::parse_bytes("895649414291294604941588381871244924626104121562042227318384494381723497514540860474803494041479529".as_bytes(), 10).unwrap();
+        let n = bi!("895649414291294604941588381871244924626104121562042227318384494381723497514540860474803494041479529", 10);
         let ff = Fermat::new(n);
         let factors = ff.factorize().unwrap().get_factors();
         assert_eq!(
             factors.clone().keys().max().unwrap().clone(),
-            BigInt::parse_bytes(
-                "29927402397991286489627904551843385490310576382227".as_bytes(),
-                10
-            )
-            .unwrap()
+            bi!("29927402397991286489627904551843385490310576382227", 10)
         );
         assert_eq!(
             factors.clone().keys().min().unwrap().clone(),
-            BigInt::parse_bytes(
-                "29927402397991286489627837734179186385188296382227".as_bytes(),
-                10
-            )
-            .unwrap()
+            bi!("29927402397991286489627837734179186385188296382227", 10)
         );
     }
 }

@@ -2,6 +2,7 @@ use num::bigint::BigInt;
 use num::Integer;
 use num::ToPrimitive;
 use num_bigint::{RandBigInt, ToBigInt};
+use num_traits::One;
 
 pub fn mod_pow(b: BigInt, e: u64, m: BigInt) -> BigInt {
     let mut s: BigInt = BigInt::from(1u64);
@@ -26,7 +27,7 @@ pub fn inv(a: BigInt, p: BigInt) -> BigInt {
 
 pub fn is_quadratic(a: BigInt, p: BigInt) -> bool {
     let e: BigInt = (p.clone() - 1u64) >> 1u64;
-    a.modpow(&e, &p) == BigInt::from(1u64)
+    a.modpow(&e, &p) == BigInt::one()
 }
 
 pub fn is_square(n: &BigInt) -> bool {
@@ -37,7 +38,7 @@ pub fn is_square(n: &BigInt) -> bool {
 }
 
 pub fn miller_rabin(n: &BigInt) -> bool {
-    if *n <= BigInt::from(1u64) {
+    if *n <= BigInt::one() {
         return false;
     }
     let mut m: BigInt = n - 1u64;
@@ -61,12 +62,12 @@ fn internal_test(n: &BigInt, m: &BigInt, k: &u64) -> bool {
     let high = n.clone();
     let a = rng.gen_bigint_range(&low, &high);
 
-    let mut b = mod_pow(a, m.to_u64().unwrap(), n.clone());
+    let mut b = a.modpow(&m, &n);
     for _ in 0..*k {
         if b.clone() % n.clone() == n.clone() - 1u64 {
             return true;
         }
-        b = mod_pow(b.clone(), 2, n.clone());
+        b = b.modpow(&2u64.to_bigint().unwrap(), n);
     }
     false
 }

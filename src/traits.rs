@@ -30,7 +30,11 @@ impl Factor {
 }
 impl Display for Factor {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}^{}", self.p, self.e)
+        if self.e == 1u32 {
+            write!(f, "{}^{}", self.p, self.e)
+        } else {
+            write!(f, "{}", self.p)
+        }
     }
 }
 impl Ord for Factor {
@@ -100,7 +104,13 @@ impl Display for Factors {
             f,
             "{}",
             fs.iter()
-                .map(|(p, e)| format!("{p}^{e}"))
+                .map(|(p, e)| {
+                    if **e != 1_u32 {
+                        format!("{p}^{e}")
+                    } else {
+                        format!("{p}")
+                    }
+                })
                 .collect::<Vec<_>>()
                 .join(" * ")
         )
