@@ -9,7 +9,7 @@ cargo install --path .
 ```
 
 ## Usage
-1. Factorize 64bit integer.
+1. Factorize 64bit integer by trial division.
 ```console
 $ fr 13251537330083289031
 n = 31 * 199 * 347 * 6190447136717
