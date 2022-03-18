@@ -1,3 +1,4 @@
+use crate::cli::{Algorithm, OutputFormat};
 use crate::traits::Factorizer;
 use num::BigInt;
 
@@ -16,14 +17,21 @@ fn main() {
     let cli = cli::parse();
     let n_str: String = cli.n.trim().to_string();
     let n: BigInt = BigInt::parse_bytes(n_str.as_bytes(), 10).unwrap();
-    let algorithm: &str = cli.algorithm.as_str();
 
-    let factors = match algorithm {
-        "trial" => trial::Trial::new(n.clone()).factorize(),
-        "fermat" => fermat::Fermat::new(n.clone()).factorize(),
+    let factors = match cli.algorithm {
+        Algorithm::Trial => trial::Trial::new(n.clone()).factorize(),
+        Algorithm::Fermat => fermat::Fermat::new(n.clone()).factorize(),
+        Algorithm::ECM => ecm::ECM::new(&n).factorize(),
         _ => None,
     }
     .unwrap();
 
-    println!("n = {factors}");
+    let result = match cli.output_format {
+        OutputFormat::List => factors.get_factors_list(),
+        OutputFormat::FlatList => factors.get_factors_flat_list(),
+        OutputFormat::Expr => factors.get_factors_expr(),
+        _ => format!("{factors}"),
+    };
+
+    println!("n = {result}");
 }

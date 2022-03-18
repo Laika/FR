@@ -2,7 +2,6 @@ use num::BigInt;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
-use std::ops::Index;
 
 // Factorizer
 pub trait Factorizer {
@@ -95,25 +94,51 @@ impl Factors {
 
         v
     }
+    pub fn get_factors_list(&self) -> String {
+        let mut factors: Vec<(&BigInt, &u32)> = Vec::from_iter(self.factors.iter());
+        factors.sort_by(|a, b| a.0.cmp(&b.0));
+        let factors_list: String = factors
+            .iter()
+            .map(|(p, e)| format!("[{p}, {e}]"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        format!("[{factors_list}]")
+    }
+
+    pub fn get_factors_flat_list(&self) -> String {
+        let mut factors: Vec<(&BigInt, &u32)> = Vec::from_iter(self.factors.iter());
+        factors.sort_by(|a, b| a.0.cmp(&b.0));
+        let factors_list: String = factors
+            .iter()
+            .map(|(p, e)| {
+                let p_str = format!("{p}");
+                let pe: Vec<String> = vec![p_str; **e as usize];
+                pe.join(", ")
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        format!("[{factors_list}]")
+    }
+
+    pub fn get_factors_expr(&self) -> String {
+        let mut factors: Vec<(&BigInt, &u32)> = Vec::from_iter(self.factors.iter());
+        factors.sort_by(|a, b| a.0.cmp(&b.0));
+        factors
+            .iter()
+            .map(|(p, e)| {
+                if **e != 1_u32 {
+                    format!("{p}^{e}")
+                } else {
+                    format!("{p}")
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" * ")
+    }
 }
 impl Display for Factors {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let mut fs: Vec<(&BigInt, &u32)> = Vec::from_iter(self.factors.iter());
-        fs.sort_by(|a, b| a.0.cmp(&b.0));
-        write!(
-            f,
-            "{}",
-            fs.iter()
-                .map(|(p, e)| {
-                    if **e != 1_u32 {
-                        format!("{p}^{e}")
-                    } else {
-                        format!("{p}")
-                    }
-                })
-                .collect::<Vec<_>>()
-                .join(" * ")
-        )
+        write!(f, "{}", self.get_factors_expr())
     }
 }
 
