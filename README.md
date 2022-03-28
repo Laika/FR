@@ -1,4 +1,6 @@
 # FR
+[![DeepSource](https://deepsource.io/gh/Laika/FR.svg/?label=active+issues&show_trend=true&token=iQ_HjqrehUx-1r5VuV9J4eVD)](https://deepsource.io/gh/Laika/FR/?ref=repository-badge)
+
 Factorization Tool 
 
 ## Installation
