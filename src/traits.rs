@@ -126,10 +126,10 @@ impl Factors {
         factors
             .iter()
             .map(|(p, e)| {
-                if **e != 1_u32 {
-                    format!("{p}^{e}")
-                } else {
+                if **e == 1_u32 {
                     format!("{p}")
+                } else {
+                    format!("{p}^{e}")
                 }
             })
             .collect::<Vec<_>>()
