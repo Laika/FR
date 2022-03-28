@@ -184,9 +184,7 @@ fn jacobian_add(p1: Point, p2: Point) -> Option<Point> {
     let z3 = h.clone() * z1.clone() * z2 * f.new(&BigInt::from(2u32));
 
     let finity: bool = z3.clone() != p1.curve.f.zero();
-    if !finity {
-        Some(p1.curve.o())
-    } else {
+    if finity {
         let x3 = (x3.clone() / z3.clone().pow(&BigInt::from(2u32))?)?;
         let y3 = (y3.clone() / z3.clone().pow(&BigInt::from(3u32))?)?;
         let z3 = p1.curve.f.new(&BigInt::from(finity as i32));
@@ -197,6 +195,8 @@ fn jacobian_add(p1: Point, p2: Point) -> Option<Point> {
             curve: p1.curve,
             n: p1.n,
         })
+    } else {
+        Some(p1.curve.o())
     }
 }
 
@@ -259,9 +259,7 @@ fn double(pp: Point) -> Option<Point> {
     let z3 = y1 * z1 * f.new(&BigInt::from(2u32));
 
     let finity: bool = z3.clone() != pp.curve.f.zero();
-    if !finity {
-        Some(pp.curve.o())
-    } else {
+    if finity {
         let x3 = (x3.clone() / z3.clone().pow(&BigInt::from(2u32))?)?;
         let y3 = (y3.clone() / z3.clone().pow(&BigInt::from(3u32))?)?;
         let z3 = pp.curve.f.new(&BigInt::from(finity as i32));
@@ -272,6 +270,8 @@ fn double(pp: Point) -> Option<Point> {
             curve: pp.curve,
             n: pp.n,
         })
+    } else {
+        Some(pp.curve.o())
     }
 }
 
