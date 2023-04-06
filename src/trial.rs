@@ -2,7 +2,7 @@ use crate::algs::{is_prime, is_square};
 use crate::traits::{Factor, Factorizer, Factors};
 use num::bigint::BigInt;
 use num::ToPrimitive;
-use num::Zero;
+use num::{One, Zero};
 use std::collections::HashMap;
 use std::io::{stdout, Write};
 
@@ -32,6 +32,9 @@ fn factorize(n: &BigInt) -> Option<Factors> {
             factors.add(BigInt::from(i.clone()));
             n /= i;
         }
+    }
+    if n > BigInt::one() {
+        factors.add(BigInt::from(n.clone()));
     }
 
     Some(factors)
