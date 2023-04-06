@@ -1,22 +1,19 @@
-use crate::bi;
-use crate::gf::GF;
-use num::bigint::{BigInt, Sign};
+use crate::galois_field::GaloisField;
+use num::bigint::{BigInt};
 use num::Integer;
-use num::ToPrimitive;
-use num_bigint::{RandBigInt, ToBigInt};
 use num_traits::{One, Zero};
 use std::fmt::{Display, Formatter, Result};
 use std::ops::{Add, Div, Fn, FnMut, FnOnce, Mul, Neg, Sub};
 
 #[derive(Debug, Clone)]
 pub struct EllipticCurve {
-    a: GF,
-    b: GF,
-    f: GF,
+    a: GaloisField,
+    b: GaloisField,
+    f: GaloisField,
 }
 
 impl EllipticCurve {
-    pub fn new(f: &GF, a: &BigInt, b: &BigInt) -> EllipticCurve {
+    pub fn new(f: &GaloisField, a: &BigInt, b: &BigInt) -> EllipticCurve {
         let (a, b) = (f.new(a), f.new(b));
         let f = f.clone();
         EllipticCurve { a, b, f }
@@ -61,11 +58,11 @@ impl Display for EllipticCurve {
 
 #[derive(Debug, Clone)]
 pub struct Point {
-    x: GF,
-    y: GF,
-    z: GF,
+    x: GaloisField,
+    y: GaloisField,
+    z: GaloisField,
     curve: EllipticCurve,
-    n: GF,
+    n: GaloisField,
 }
 impl Point {
     pub fn xy(&self) -> (BigInt, BigInt) {
@@ -125,7 +122,7 @@ fn affine_add(p1: Point, p2: Point) -> Option<Point> {
     assert_eq!(p1.curve.f, p2.curve.f);
 
     let p = p1.curve.f.p.clone();
-    let f = GF::GF(&p);
+    let f = GaloisField::GaloisField(&p);
     if p1 == p1.curve.o() {
         return Some(p2);
     }
@@ -155,7 +152,7 @@ fn jacobian_add(p1: Point, p2: Point) -> Option<Point> {
     assert_eq!(p1.curve.f.p, p2.curve.f.p);
     assert_eq!(p1.curve.f.value, p2.curve.f.value);
     let p = p1.curve.f.p.clone();
-    let f = GF::GF(&p);
+    let f = GaloisField::GaloisField(&p);
     if p1 == p1.curve.o() {
         return Some(p2);
     }
@@ -245,7 +242,7 @@ pub fn scalar_mul_for_factorization(k: BigInt, p: Point) -> Option<BigInt> {
 
 fn double(pp: Point) -> Option<Point> {
     let (a, p) = (pp.curve.a.clone(), pp.curve.f.p.clone());
-    let f = GF::GF(&p);
+    let f = GaloisField::GaloisField(&p);
     let (x1, y1, z1) = (pp.x, pp.y, pp.z);
     let s = ((x1.clone() + y1.pow(&BigInt::from(2u32))?).pow(&BigInt::from(2u32))?
         - x1.pow(&BigInt::from(2u32))?
@@ -295,7 +292,7 @@ mod tests {
             16
         );
 
-        let f = GF::GF(&p);
+        let f = GaloisField::GaloisField(&p);
         let k = BigInt::from(32u32);
         let e = EllipticCurve::new(&f, &a, &b);
 

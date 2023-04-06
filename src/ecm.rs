@@ -1,17 +1,16 @@
 use crate::consts::PRIMES as primes;
 use crate::elliptic_curve::{scalar_mul_for_factorization, EllipticCurve};
-use crate::gf::GF;
+use crate::galois_field::GaloisField;
 use crate::traits::{Factorizer, Factors};
 use num::bigint::BigInt;
 use num_bigint::RandBigInt;
-use num_traits::Zero;
 
 pub struct ECM {
     n: BigInt,
 }
 impl ECM {
-    pub fn new(n: &BigInt) -> Self {
-        Self { n: n.clone() }
+    pub fn new(n: BigInt) -> Self {
+        Self { n }
     }
 }
 
@@ -24,17 +23,17 @@ impl Factorizer for ECM {
 fn factorize(n: &BigInt) -> Option<Factors> {
     let n = n.clone();
     let mut rng = rand::thread_rng();
-    let low = BigInt::from(2u64);
+    let low = BigInt::from(2);
     let high = n.clone();
     let l = 242u64;
 
     loop {
-        let f = GF::GF(&n);
+        let f = GaloisField::GaloisField(&n);
         let x0 = f.new(&rng.gen_bigint_range(&low, &high));
         let y0 = f.new(&rng.gen_bigint_range(&low, &high));
         let a = f.new(&rng.gen_bigint_range(&low, &high));
-        let b = y0.clone().pow(&BigInt::from(2u32))?
-            - x0.clone().pow(&BigInt::from(3u32))?
+        let b = y0.clone().pow(&BigInt::from(2))?
+            - x0.clone().pow(&BigInt::from(3))?
             - a.clone() * x0.clone();
         let e = EllipticCurve::new(&f, &a.value, &b.value);
         let g = e.new_point(&x0.value, &y0.value);
@@ -42,7 +41,7 @@ fn factorize(n: &BigInt) -> Option<Factors> {
         for p in primes {
             let mut m: u64 = p.clone();
             //let mut pg; // Previous g
-            let mut cg = (BigInt::from(2u32) * g.clone())?; // Current g
+            let cg = (BigInt::from(2) * g.clone())?; // Current g
 
             while m.clone() * p.clone() <= l {
                 m *= p.clone();
@@ -79,7 +78,7 @@ mod tests {
         //let n = bi!("121439531096594251777", 10);
         //let n = bi!("455839", 10);
         let n = bi!("835791", 10);
-        let ff = ECM::new(&n);
+        let ff = ECM::new(n);
         let f = ff.factorize();
         println!("f: {f:?}");
     }

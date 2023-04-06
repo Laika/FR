@@ -6,6 +6,7 @@ use std::collections::HashMap;
 pub struct Fermat {
     n: BigInt,
 }
+
 impl Fermat {
     pub fn new(n: BigInt) -> Self {
         Self { n }

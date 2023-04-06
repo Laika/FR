@@ -1,11 +1,12 @@
+use crate::consts::PRIMES as primes;
 use num::bigint::BigInt;
 use num::Integer;
 use num::ToPrimitive;
-use num_bigint::{RandBigInt, ToBigInt};
+use num_bigint::RandBigInt;
 use num_traits::One;
 
 pub fn mod_pow(b: BigInt, e: u64, m: BigInt) -> BigInt {
-    let mut s: BigInt = BigInt::from(1u64);
+    let mut s: BigInt = BigInt::from(1);
     let mut t = b;
     let mut exp = e;
     let mo = m.clone();
@@ -58,7 +59,7 @@ pub fn miller_rabin(n: &BigInt) -> bool {
 }
 fn internal_test(n: &BigInt, m: &BigInt, k: &u64) -> bool {
     let mut rng = rand::thread_rng();
-    let low = 2u64.to_bigint().unwrap();
+    let low = BigInt::from(2);
     let high = n.clone();
     let a = rng.gen_bigint_range(&low, &high);
 
@@ -67,11 +68,12 @@ fn internal_test(n: &BigInt, m: &BigInt, k: &u64) -> bool {
         if b.clone() % n.clone() == n.clone() - 1u64 {
             return true;
         }
-        b = b.modpow(&2u64.to_bigint().unwrap(), n);
+        b = b.modpow(&BigInt::from(2), n);
     }
     false
 }
 
 pub fn is_prime(n: &BigInt) -> bool {
-    miller_rabin(n)
+    let n_u64 = n.to_u64().unwrap();
+    primes.binary_search(&n_u64).is_ok() || miller_rabin(n)
 }

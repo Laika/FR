@@ -6,13 +6,13 @@ use std::fmt::{Debug, Display, Formatter, Result};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Default, Hash)]
-pub struct GF {
+pub struct GaloisField {
     pub p: BigInt,
     pub value: BigInt,
 }
-impl GF {
+impl GaloisField {
     #[allow(non_snake_case)]
-    pub fn GF(p: &BigInt) -> Self {
+    pub fn GaloisField(p: &BigInt) -> Self {
         Self {
             p: p.clone(),
             value: BigInt::zero(),
@@ -83,25 +83,25 @@ impl GF {
     }
 }
 
-impl Display for GF {
+impl Display for GaloisField {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{}", self.value)
     }
 }
 
-impl Debug for GF {
+impl Debug for GaloisField {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{:?}", self.value)
     }
 }
 
-impl PartialEq for GF {
+impl PartialEq for GaloisField {
     fn eq(&self, rhs: &Self) -> bool {
         self.value == rhs.value && self.p == rhs.p
     }
 }
 
-impl Neg for GF {
+impl Neg for GaloisField {
     type Output = Self;
     fn neg(self) -> Self::Output {
         Self {
@@ -111,7 +111,7 @@ impl Neg for GF {
     }
 }
 
-impl Add for GF {
+impl Add for GaloisField {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         assert_eq!(self.p, rhs.p);
@@ -125,14 +125,14 @@ impl Add for GF {
     }
 }
 
-impl Sub for GF {
+impl Sub for GaloisField {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         self + -rhs
     }
 }
 
-impl Mul for GF {
+impl Mul for GaloisField {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         assert_eq!(self.p, rhs.p);
@@ -143,7 +143,7 @@ impl Mul for GF {
     }
 }
 
-impl Div for GF {
+impl Div for GaloisField {
     type Output = Option<Self>;
     fn div(self, rhs: Self) -> Self::Output {
         let rinv = rhs.inv()?;
@@ -173,7 +173,7 @@ mod tests {
             16
         );
 
-        let f = GF::GF(&p);
+        let f = GaloisField::GaloisField(&p);
 
         let x: BigInt = -BigInt::one();
         let y: BigInt = p.clone() - BigInt::one();
@@ -187,8 +187,8 @@ mod tests {
         let y: BigInt = p.clone();
         assert_eq!(f.new(&x), f.new(&y));
 
-        let x: GF = f.new(&a);
-        let y: GF = f.new(&b);
+        let x: GaloisField = f.new(&a);
+        let y: GaloisField = f.new(&b);
         let z: BigInt = bi!(
             "5b1c1d569434f30ad023a517b931db2df098613edbe62a261bcde2da998e39ef",
             16
@@ -196,45 +196,45 @@ mod tests {
 
         assert_eq!(x + y, f.new(&z));
 
-        let x: GF = f.new(&a);
-        let y: GF = f.new(&b);
+        let x: GaloisField = f.new(&a);
+        let y: GaloisField = f.new(&b);
         let z: BigInt = bi!(
             "5b1c1d569434f30ad023a517b931db2df098613edbe62a261bcde2da998e39ef",
             16
         );
         assert_eq!(x + y, f.new(&z));
 
-        let x: GF = f.new(&a);
-        let y: GF = f.new(&b);
+        let x: GaloisField = f.new(&a);
+        let y: GaloisField = f.new(&b);
         let z: BigInt = bi!(
             "cc4ae9996bf9215a286f813f63e19cdb92047457e086a39901bde95b12e57058",
             16
         );
         assert_eq!(x - y, f.new(&z));
 
-        let x: GF = f.new(&a);
-        let y: GF = f.new(&b);
+        let x: GaloisField = f.new(&a);
+        let y: GaloisField = f.new(&b);
         let z: BigInt = bi!(
             "83f586495da900cdee6da208c9720d437398a9b8b6ca067d52ec0e1f7cdf029c",
             16
         );
         assert_eq!(x * y, f.new(&z));
 
-        let x: GF = f.new(&a);
-        let y: GF = f.new(&b);
+        let x: GaloisField = f.new(&a);
+        let y: GaloisField = f.new(&b);
         let z: BigInt = bi!(
             "ed30030ae80f2255c2acf73d01c3c9a41302928d248c7ceef9e95231b821effe",
             16
         );
 
-        let x: GF = f.new(&a);
+        let x: GaloisField = f.new(&a);
         let y: &BigInt = &b;
         let z: BigInt = bi!(
             "20410ee973c22010125f6a3e8f0b369f9dabb3fb439f4f5478fc91102c5061e3",
             16
         );
 
-        let x: GF = f.new(&a);
+        let x: GaloisField = f.new(&a);
         let y: &BigInt = &b;
         let z: BigInt = bi!(
             "93983616857e67ce830aa4af9c2dfd67f2e52dbd6dda4b0cb43c3ae9c56d064b",
@@ -242,8 +242,8 @@ mod tests {
         );
         assert_eq!(x.pow(&-y).unwrap(), f.new(&z));
 
-        let x: GF = f.new(&a);
-        let y: GF = f.new(&b);
+        let x: GaloisField = f.new(&a);
+        let y: GaloisField = f.new(&b);
         let n1: &BigInt = &-BigInt::one();
 
         assert_eq!(x.pow(&n1), x.inv());

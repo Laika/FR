@@ -1,10 +1,12 @@
 use crate::algs::{is_prime, is_square};
-use crate::consts::PRIMES as primes;
 use crate::traits::{Factor, Factorizer, Factors};
 use num::bigint::BigInt;
 use num::ToPrimitive;
+use num::Zero;
 use std::collections::HashMap;
+use std::io::{stdout, Write};
 
+#[derive(Debug)]
 pub struct Trial {
     n: BigInt,
 }
@@ -22,19 +24,14 @@ impl Factorizer for Trial {
 
 fn factorize(n: &BigInt) -> Option<Factors> {
     let mut n = n.clone();
+    let m = n.sqrt().to_u64().unwrap();
 
     let mut factors = Factors::new(None);
-    while n > BigInt::from(1u64) && !is_prime(&n) {
-        for x in primes {
-            if n.clone() % x.clone() == BigInt::from(0u64) {
-                factors.add(BigInt::from(x.clone()));
-                n /= x;
-                break;
-            }
+    for i in 2..=m {
+        while n.clone() % i.clone() == BigInt::zero() {
+            factors.add(BigInt::from(i.clone()));
+            n /= i;
         }
-    }
-    if n > BigInt::from(1u64) {
-        factors.add(n.clone());
     }
 
     Some(factors)

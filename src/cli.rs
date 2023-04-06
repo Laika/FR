@@ -1,12 +1,12 @@
-use clap::{ArgEnum, Parser};
+use clap::{ValueEnum, Parser};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 pub struct Cli {
-    #[clap(short, long, arg_enum, default_value_t = Algorithm::Trial)]
+    #[clap(short, long, value_enum, default_value_t = Algorithm::Trial)]
     pub algorithm: Algorithm,
 
-    #[clap(short, long, arg_enum, default_value_t = OutputFormat::Expr)]
+    #[clap(short, long, value_enum, default_value_t = OutputFormat::Expr)]
     pub output_format: OutputFormat,
 
     #[clap(short, long, default_value_t = -1)]
@@ -15,7 +15,7 @@ pub struct Cli {
     pub n: String,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum Algorithm {
     Auto,
     Trial,
@@ -23,7 +23,7 @@ pub enum Algorithm {
     Fermat,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum OutputFormat {
     Expr,
     FlatList,
